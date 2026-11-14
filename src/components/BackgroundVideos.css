@@ -1,0 +1,66 @@
+/* ===== Bottom layer: Background Video 1 ===== */
+.background-video-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  z-index: -2;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.background-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  object-fit: cover;
+  object-position: center top; /* keeps the head visible, crops the bottom */
+}
+
+/* ===== Middle layer: Background Video 2 (transparent, over Video 1) ===== */
+.background-video-2-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  margin: 0;
+  padding: 0;
+  z-index: -1;
+  overflow: hidden;
+  background: transparent;
+  pointer-events: none;
+}
+
+.background-video-2 {
+  display: block;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  object-fit: cover;
+  object-position: center top;              /* was center: keeps her head in view */
+  opacity: 1;
+  filter: brightness(0.45) saturate(1.1);
+}
+
+/* Dark layer so the text stays readable */
+.background-video-2-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(3, 6, 15, 0.55),
+    rgba(3, 6, 15, 0.7)
+  );
+  pointer-events: none;
+}

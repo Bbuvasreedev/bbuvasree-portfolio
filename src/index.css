@@ -1,0 +1,39 @@
+/* Let the fixed background videos show through the whole page */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  color: #fff;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  background: transparent !important;
+}
+
+/* Soft dark layer above the videos, below the content, for readable text */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35); /* raise for darker, lower for brighter */
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* No solid bar behind BN / About / Experience / Projects / Contact */
+header,
+nav,
+.navbar,
+.header {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-bottom: none !important;
+}
