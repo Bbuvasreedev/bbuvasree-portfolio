@@ -1,21 +1,25 @@
+/* ===== Pill button: your face + "Decode Me" ===== */
 .ai-chat-button {
   position: fixed;
-  right: 28px;
-  bottom: 28px;
-  width: 58px;
-  height: 58px;
+  right: 24px;
+  bottom: 24px;
+  height: 44px;
+  padding: 4px 18px 4px 4px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
   border: 1px solid rgba(120, 180, 255, 0.35);
-  border-radius: 50%;
+  border-radius: 999px;
   background: rgba(8, 15, 30, 0.88);
   color: #ffffff;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.08em;
   cursor: pointer;
   z-index: 9999;
   backdrop-filter: blur(18px);
   box-shadow:
-    0 0 30px rgba(60, 140, 255, 0.18),
+    0 0 24px rgba(60, 140, 255, 0.18),
     inset 0 0 20px rgba(80, 150, 255, 0.05);
   transition:
     transform 0.25s ease,
@@ -31,33 +35,47 @@
     inset 0 0 20px rgba(80, 150, 255, 0.08);
 }
 
-.ai-chat-button--open {
-  font-size: 28px;
-  font-weight: 300;
+/* Round logo: centered on her head */
+.ai-avatar {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background-color: #000;
+  background-size: 250%;
+  background-position: 50% 7%;
+  background-repeat: no-repeat;
+  border: 2px solid rgba(255, 122, 26, 0.8);
 }
 
+/* Hidden on the landing page, visible once the portfolio opens */
+body.landing-active .ai-chat-button,
+body.landing-active .ai-chat {
+  display: none;
+}
+
+/* ===== Chat window ===== */
 .ai-chat {
   position: fixed;
   right: 28px;
-  bottom: 100px;
+  bottom: 84px;
   width: 390px;
   height: 560px;
+  max-height: calc(100vh - 110px);
 
   display: flex;
   flex-direction: column;
 
-  background:
-    linear-gradient(
-      145deg,
-      rgba(7, 13, 27, 0.97),
-      rgba(5, 10, 20, 0.96)
-    );
+  background: linear-gradient(
+    145deg,
+    rgba(7, 13, 27, 0.97),
+    rgba(5, 10, 20, 0.96)
+  );
 
   border: 1px solid rgba(110, 170, 255, 0.2);
   border-radius: 22px;
-
   overflow: hidden;
-
+  overscroll-behavior: contain;
   backdrop-filter: blur(30px);
 
   box-shadow:
@@ -65,24 +83,16 @@
     0 0 60px rgba(40, 120, 255, 0.08);
 
   z-index: 9998;
-
   animation: aiChatOpen 0.25s ease-out;
 }
 
 @keyframes aiChatOpen {
-  from {
-    opacity: 0;
-    transform: translateY(15px) scale(0.97);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+  from { opacity: 0; transform: translateY(15px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .ai-chat__header {
-  padding: 20px 22px;
+  padding: 18px 22px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.02);
 }
@@ -99,112 +109,97 @@
   align-items: center;
   gap: 7px;
   margin-top: 6px;
-
-  color: rgba(255, 255, 255, 0.45);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 11px;
+  letter-spacing: 0.02em;
 }
 
-.ai-chat__status span {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #5cff9d;
-  box-shadow: 0 0 10px rgba(92, 255, 157, 0.8);
+.ai-chat__spark {
+  color: #ff9a4d;
+  font-size: 12px;
+  text-shadow: 0 0 10px rgba(255, 140, 70, 0.8);
+  animation: sparkPulse 2.4s ease-in-out infinite;
+}
+@keyframes sparkPulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
 }
 
 .ai-chat__messages {
   flex: 1;
   padding: 20px;
-
   display: flex;
   flex-direction: column;
   gap: 12px;
-
   overflow-y: auto;
+  overscroll-behavior: contain;
+  transition: padding-bottom 0.4s ease;
+}
+
+/* Leaves room for her while she is out of the input box */
+.ai-chat__messages--lifted {
+  padding-bottom: 84px;
 }
 
 .ai-chat__message {
   max-width: 82%;
   padding: 11px 14px;
-
   font-size: 13px;
   line-height: 1.55;
-
   border-radius: 15px;
-
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .ai-chat__message--assistant {
   align-self: flex-start;
-
   color: rgba(255, 255, 255, 0.82);
-
   background: rgba(255, 255, 255, 0.055);
-
   border: 1px solid rgba(255, 255, 255, 0.06);
-
   border-bottom-left-radius: 4px;
 }
 
 .ai-chat__message--user {
   align-self: flex-end;
-
   color: #ffffff;
-
   background: linear-gradient(
     135deg,
     rgba(45, 105, 190, 0.55),
     rgba(30, 70, 140, 0.45)
   );
-
   border: 1px solid rgba(100, 170, 255, 0.15);
-
   border-bottom-right-radius: 4px;
 }
 
+/* ===== Input area ===== */
 .ai-chat__input-area {
+  position: relative;               /* the character is anchored to this box */
   display: flex;
   align-items: flex-end;
   gap: 10px;
-
   padding: 15px;
-
   border-top: 1px solid rgba(255, 255, 255, 0.07);
-
   background: rgba(0, 0, 0, 0.18);
 }
 
 .ai-chat__input-area textarea {
   flex: 1;
-
   min-height: 40px;
   max-height: 100px;
-
   padding: 11px 13px;
-
   resize: none;
-
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-
   outline: none;
-
   background: rgba(255, 255, 255, 0.045);
-
   color: #ffffff;
-
   font-family: inherit;
   font-size: 12px;
-
-  transition:
-    border-color 0.2s ease,
-    background 0.2s ease;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .ai-chat__input-area textarea::placeholder {
-  color: rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.35);
 }
 
 .ai-chat__input-area textarea:focus {
@@ -215,23 +210,14 @@
 .ai-chat__input-area button {
   width: 40px;
   height: 40px;
-
   flex-shrink: 0;
-
   border: 1px solid rgba(100, 170, 255, 0.25);
   border-radius: 12px;
-
   background: rgba(60, 130, 220, 0.25);
-
   color: #ffffff;
-
   font-size: 18px;
-
   cursor: pointer;
-
-  transition:
-    transform 0.2s ease,
-    background 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease;
 }
 
 .ai-chat__input-area button:hover:not(:disabled) {
@@ -244,47 +230,117 @@
   cursor: not-allowed;
 }
 
-.ai-chat__typing {
+/* ===== Her, popping out of the input box ===== */
+/* The wrapper sits on the top edge of the input box and clips at that line,
+   so she looks like she rises out of the box. It never blocks typing. */
+.ai-character-thinking {
+  position: absolute;
+  left: 16px;
+  bottom: 100%;
+  width: 210px;
+  height: 104px;
   display: flex;
-  align-items: center;
-  gap: 4px;
-  height: 16px;
+  align-items: flex-end;
+  overflow: hidden;
+  pointer-events: none;
 }
 
-.ai-chat__typing span {
+.ai-character-thinking__img {
+  width: 96px;
+  height: 96px;
+  margin-bottom: -6px;               /* hidden extra so floating never shows a gap */
+  flex-shrink: 0;
+  display: block;
+  object-fit: cover;
+  user-select: none;
+
+  /* hidden: below the line */
+  opacity: 0;
+  transform: translateY(115%) scale(0.92);
+  transform-origin: 50% 100%;
+  transition:
+    transform 0.55s cubic-bezier(0.34, 1.25, 0.64, 1),
+    opacity 0.35s ease;
+
+  /* The picture has a black background: let the chat colour show through */
+  mix-blend-mode: lighten;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0%, #000 20%, #000 80%, transparent 100%),
+    linear-gradient(to bottom, transparent 0%, #000 14%, #000 100%);
+  mask-composite: intersect;
+}
+
+/* visible (while typing she only peeks out; once sent she is fully out) */
+.ai-character-thinking--visible .ai-character-thinking__img {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+.ai-character-thinking--peek .ai-character-thinking__img {
+  transform: translateY(44%) scale(1);
+}
+
+/* answer arrived: slide back down into the box */
+.ai-character-thinking--returning .ai-character-thinking__img {
+  opacity: 0;
+  transform: translateY(115%) scale(0.94);
+  transition:
+    transform 0.42s cubic-bezier(0.55, 0, 0.7, 0.2),
+    opacity 0.34s ease 0.08s;
+}
+
+/* thinking: very small float and head tilt (uses the separate translate/rotate
+   properties so it does not fight with the pop-up transform) */
+.ai-character-thinking--thinking .ai-character-thinking__img {
+  animation: aiThinkFloat 3.4s ease-in-out 0.6s infinite;
+}
+@keyframes aiThinkFloat {
+  0%, 100% { translate: 0 0;    rotate: -1.6deg; }
+  50%      { translate: 0 -4px; rotate: 1.6deg; }
+}
+
+/* small thought dots beside her */
+.ai-character-thinking__dots {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0 0 40px 6px;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+}
+.ai-character-thinking--thinking .ai-character-thinking__dots {
+  opacity: 1;
+  transition-delay: 0.35s;
+}
+.ai-character-thinking__dots i {
   width: 5px;
   height: 5px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.6);
-  animation: typing 1.2s infinite ease-in-out;
+  background: rgba(255, 160, 100, 0.9);
+  box-shadow: 0 0 8px rgba(255, 120, 60, 0.6);
+  animation: aiThoughtDot 1.4s ease-in-out infinite;
+}
+.ai-character-thinking__dots i:nth-child(2) { animation-delay: 0.18s; }
+.ai-character-thinking__dots i:nth-child(3) { animation-delay: 0.36s; }
+.ai-character-thinking__dots span {
+  margin-left: 4px;
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  color: rgba(255, 255, 255, 0.5);
+}
+@keyframes aiThoughtDot {
+  0%, 100% { opacity: 0.25; transform: scale(0.8); }
+  50%      { opacity: 1;    transform: scale(1.15); }
 }
 
-.ai-chat__typing span:nth-child(2) {
-  animation-delay: 0.15s;
-}
-
-.ai-chat__typing span:nth-child(3) {
-  animation-delay: 0.3s;
-}
-
-@keyframes typing {
-  0%,
-  60%,
-  100% {
-    opacity: 0.3;
-    transform: translateY(0);
-  }
-
-  30% {
-    opacity: 1;
-    transform: translateY(-3px);
-  }
-}
-
+/* ===== Mobile ===== */
 @media (max-width: 600px) {
   .ai-chat {
     right: 14px;
-    bottom: 88px;
+    bottom: 76px;
     width: calc(100vw - 28px);
     height: min(560px, 70vh);
   }
@@ -293,4 +349,144 @@
     right: 18px;
     bottom: 18px;
   }
+
+  .ai-character-thinking {
+    width: 180px;
+    height: 88px;
+  }
+  .ai-character-thinking__img {
+    width: 82px;
+    height: 82px;
+  }
+  .ai-character-thinking__dots { margin-bottom: 34px; }
+  .ai-chat__messages--lifted { padding-bottom: 72px; }
+}
+
+/* ===== Reduced motion ===== */
+@media (prefers-reduced-motion: reduce) {
+  .ai-character-thinking__img,
+  .ai-character-thinking__dots i,
+  .ai-chat__spark {
+    animation: none !important;
+  }
+}
+
+/* ===== Draws the eye to the AI button ===== */
+.ai-chat-button:not(.ai-chat-button--open)::before {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 2px solid rgba(245, 218, 191, 0.65);
+  pointer-events: none;
+  animation: aiRing 2.2s ease-out infinite;
+}
+@keyframes aiRing {
+  0%   { transform: scale(1);        opacity: 0.9; }
+  100% { transform: scale(1.22, 1.55); opacity: 0; }
+}
+
+.ai-chat-hint {
+  position: fixed;
+  right: 24px;
+  bottom: 78px;
+  z-index: 9999;
+  padding: 10px 16px;
+  border-radius: 14px 14px 4px 14px;
+  background: #f5dabf;
+  color: #6c151e;
+  font: 700 12.5px system-ui, -apple-system, "Segoe UI", sans-serif;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+  opacity: 0;
+  animation:
+    aiHintIn 0.6s ease 2.5s forwards,
+    aiHintBob 2.4s ease-in-out 3.2s infinite;
+}
+@keyframes aiHintIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes aiHintBob {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -5px; }
+}
+
+body.landing-active .ai-chat-hint { display: none; }
+
+/* ===== Match the new colour theme ===== */
+.ai-chat-button {
+  border-color: rgba(245, 218, 191, 0.4);
+  background: rgba(15, 61, 58, 0.92);
+}
+.ai-avatar { border-color: rgba(245, 218, 191, 0.9); }
+.ai-chat {
+  border-color: rgba(245, 218, 191, 0.22);
+  background: linear-gradient(145deg, rgba(10, 40, 38, 0.97), rgba(8, 24, 24, 0.97));
+}
+.ai-chat__spark { color: #f5dabf; text-shadow: 0 0 10px rgba(245, 218, 191, 0.7); }
+.ai-chat__message--user {
+  background: linear-gradient(135deg, rgba(108, 21, 30, 0.9), rgba(140, 36, 48, 0.8));
+  border-color: rgba(245, 218, 191, 0.2);
+}
+.ai-chat__input-area textarea:focus { border-color: rgba(245, 218, 191, 0.5); }
+.ai-chat__input-area button { background: rgba(108, 21, 30, 0.8); border-color: rgba(245, 218, 191, 0.3); }
+.ai-chat__input-area button:hover:not(:disabled) { background: rgba(140, 36, 48, 0.95); }
+
+/* ===== Click outside to close + X button ===== */
+.ai-chat-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 9997;
+  background: transparent;
+}
+
+.ai-chat__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.ai-chat__close {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 0 0 3px;
+  font-size: 22px;
+  line-height: 1;
+  color: #f5dabf;
+  cursor: pointer;
+  border: 1px solid rgba(245, 218, 191, 0.3);
+  border-radius: 50%;
+  background: rgba(245, 218, 191, 0.07);
+  transition: background 0.2s, transform 0.2s;
+}
+.ai-chat__close:hover {
+  background: rgba(245, 218, 191, 0.2);
+  transform: rotate(90deg);
+}
+
+/* ===== Decode Me button uses "Bottom logo.png" ===== */
+.ai-avatar-img {
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  display: block;
+  object-fit: cover;
+  object-position: 50% 20%;   /* change if the logo is cropped badly */
+  border-radius: 50%;
+  background: #000;
+  border: 2px solid rgba(245, 218, 191, 0.9);
+}
+
+/* ===== Thinking character: lower, with "Thinking..." right beside her ===== */
+.ai-character-thinking {
+  left: 8px;
+  bottom: calc(100% - 4px);
+  align-items: flex-end;
+}
+.ai-character-thinking__dots {
+  margin: 0 0 12px -16px;
 }

@@ -21,7 +21,7 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35); /* raise for darker, lower for brighter */
+  background: rgba(0, 0, 0, 0.12); /* raise for darker, lower for brighter */
   z-index: 0;
   pointer-events: none;
 }

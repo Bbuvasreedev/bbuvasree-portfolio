@@ -21,13 +21,15 @@ function Landing() {
   const [visible, setVisible] = useState(true);
   const rootRef = useRef(null);
 
-  // Lock page scroll while the intro is showing
+  // Lock page scroll while the intro is showing, and hide the AI chat
   useEffect(() => {
     if (!visible) return;
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    document.body.classList.add("landing-active");
     return () => {
       document.body.style.overflow = previous;
+      document.body.classList.remove("landing-active");
     };
   }, [visible]);
 
@@ -137,7 +139,7 @@ function Landing() {
       {/* Character: enters from the right, parallax on cursor */}
       <div className="landing__heroWrap">
         <div className="landing__heroParallax">
-          <img className="landing__photo" src={PHOTO} alt="Bhuvasree N" />
+          <img className="landing__photo" src={PHOTO} alt="BBUVASREE N" />
         </div>
       </div>
       <div className="landing__shade" aria-hidden="true" />
