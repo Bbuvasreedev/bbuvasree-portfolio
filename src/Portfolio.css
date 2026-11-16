@@ -269,12 +269,30 @@ html { scroll-behavior: smooth; }
 .pf-about__lead {
   margin: 0;
   font-family: "Space Grotesk", sans-serif;
-  font-size: clamp(1.2rem, 2.3vw, 1.65rem);
-  line-height: 1.5;
+  font-size: clamp(1.05rem, 1.7vw, 1.3rem);
+  line-height: 1.6;
   font-weight: 500;
   color: #fff;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  overflow-wrap: normal;
+  word-spacing: -0.02em;
 }
-.pf-about__text { margin: 20px 0 0; line-height: 1.8; color: var(--pf-mute); max-width: 560px; }
+.pf-about__text {
+  margin: 20px 0 0;
+  line-height: 1.8;
+  color: var(--pf-mute);
+  max-width: none;
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: none;
+  -webkit-hyphens: none;
+  word-break: normal;
+  overflow-wrap: normal;
+}
 
 .pf-stats {
   display: grid;
@@ -295,6 +313,7 @@ html { scroll-behavior: smooth; }
 }
 .pf-stat span { display: block; margin-top: 8px; font-size: 0.78rem; color: var(--pf-mute); }
 
+/* developer.js card */
 .pf-code {
   border-radius: 20px;
   overflow: hidden;
@@ -319,12 +338,13 @@ html { scroll-behavior: smooth; }
 }
 .pf-code__body {
   margin: 0;
-  padding: 20px 22px;
-  overflow-x: auto;
+  padding: 24px 28px;
+  overflow: visible;          /* no scrollbar: the card grows to fit all the code */
+  max-height: none;
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.82rem;
-  line-height: 1.85;
-  color: rgba(255, 244, 230, 0.85);
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: rgba(255, 244, 230, 0.88);
 }
 .pf-code__line { display: block; opacity: 0; white-space: pre; }
 .pf-reveal.is-in .pf-code__line {
@@ -420,31 +440,19 @@ html { scroll-behavior: smooth; }
   background: rgba(245, 218, 191, 0.16);
   border-color: var(--pf-cream);
 }
-.pf-ai__pipe { display: flex; flex-wrap: wrap; gap: 6px 0; margin-top: 28px !important; }
-.pf-ai__pipe li {
-  font-family: "JetBrains Mono", monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  color: rgba(245, 218, 191, 0.7);
-}
-.pf-ai__pipe li:not(:last-child)::after {
-  content: "→";
-  margin: 0 10px;
-  color: var(--pf-cream);
-}
 
-/* ===== Standalone pointing character: no ring, no frame ===== */
+/* Standalone pointing character: no ring, no frame */
 .pf-pointer {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 .pf-pointer__img {
-  width: min(620px, 118%);          /* was min(430px, 92%) */
+  width: min(620px, 118%);
   max-width: none;
   height: auto;
   display: block;
-  margin: -30px -40px -30px 0;      /* lets her grow without making the card taller */
+  margin: -30px -40px -30px 0;
   pointer-events: none;
   user-select: none;
 
@@ -496,32 +504,6 @@ html { scroll-behavior: smooth; }
   transition: border-color 0.25s, transform 0.25s;
 }
 .pf-skill li:hover { border-color: var(--pf-cream); transform: translateY(-2px); }
-
-.pf-marquee {
-  margin-top: 40px;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
-}
-.pf-marquee + .pf-marquee { margin-top: 14px; }
-.pf-marquee__track {
-  display: flex;
-  width: max-content;
-  animation: pfMarquee 40s linear infinite;
-}
-.pf-marquee--rev .pf-marquee__track { animation-direction: reverse; }
-.pf-marquee:hover .pf-marquee__track { animation-play-state: paused; }
-.pf-marquee__set { display: flex; gap: 14px; padding-right: 14px; }
-.pf-marquee__set span {
-  white-space: nowrap;
-  padding: 10px 22px;
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 1.05rem;
-  font-weight: 600;
-  color: rgba(245, 218, 191, 0.62);
-  border: 1px solid rgba(245, 218, 191, 0.14);
-  border-radius: 999px;
-}
 
 /* ===== Experience timeline ===== */
 .pf-timeline { --p: 0; position: relative; padding-left: 40px; }
@@ -818,7 +800,6 @@ html { scroll-behavior: smooth; }
 @keyframes pfShimmer { 0%, 100% { background-position: 0% 0; } 50% { background-position: 100% 0; } }
 @keyframes pfLineIn { from { opacity: 0; transform: translateX(-14px); } to { opacity: 1; transform: none; } }
 @keyframes pfBlink { 50% { opacity: 0; } }
-@keyframes pfMarquee { to { transform: translateX(-50%); } }
 @keyframes pfPulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.6; } }
 @keyframes pfPulseGreen { 70% { box-shadow: 0 0 0 8px rgba(74, 222, 128, 0); } 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); } }
 @keyframes pfRing { 0% { box-shadow: 0 0 0 0 rgba(245, 218, 191, 0.7); } 100% { box-shadow: 0 0 0 14px rgba(245, 218, 191, 0); } }
@@ -833,7 +814,7 @@ html { scroll-behavior: smooth; }
   .pf-about, .pf-ai { grid-template-columns: 1fr; }
   .pf-ai__visual { order: -1; }
   .pf-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .pf-pointer__img { width: min(380px, 90%); margin: 0 auto; }
+  .pf-pointer__img { width: min(380px, 90%); margin: 0 auto; }
 }
 @media (max-width: 640px) {
   .pf-grid { grid-template-columns: 1fr; }

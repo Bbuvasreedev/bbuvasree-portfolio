@@ -21,6 +21,21 @@ function Landing() {
   const [visible, setVisible] = useState(true);
   const rootRef = useRef(null);
 
+  // On every load/refresh: start from the very top, ignore the old scroll position and #hash
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+    if (window.location.hash && window.location.hash !== "#admin") {
+      window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.search
+      );
+    }
+    window.scrollTo({ top: 0, left: 0, behavior: "instant" });
+  }, []);
+
   // Lock page scroll while the intro is showing, and hide the AI chat
   useEffect(() => {
     if (!visible) return;
@@ -39,7 +54,7 @@ function Landing() {
     setTimeout(() => {
       setVisible(false);
       document.body.style.overflow = "";
-      window.scrollTo(0, 0);
+      window.scrollTo({ top: 0, left: 0, behavior: "instant" });
     }, 900);
   };
 

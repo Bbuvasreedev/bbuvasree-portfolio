@@ -28,8 +28,8 @@ public class KnowledgeDataLoader implements CommandLineRunner {
     public void run(String... args) throws Exception {
 
         Path knowledgeFolder = Paths.get(
-                "C:/Muruga/Animi Portfolio/portfolio/rag-knowledge"
-        );
+        "src/main/resources/knowledge"
+);
 
         if (!Files.exists(knowledgeFolder)) {
             System.out.println(

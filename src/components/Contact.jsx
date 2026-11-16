@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Reveal from "../components/Reveal";
+import Reveal from "./Reveal";
 import SectionHead from "./SectionHead";
 import { PROFILE } from "../data/portfolioData";
 
@@ -18,7 +18,15 @@ export default function Contact() {
 
   return (
     <section id="contact" className="pf-section pf-section--last">
-      <SectionHead num="06" label="Contact" title={<>Let&apos;s build something <em>remarkable</em>.</>} />
+      <SectionHead
+        num="06"
+        label="Contact"
+        title={
+          <>
+            Let&apos;s build something <em>remarkable</em>.
+          </>
+        }
+      />
 
       <Reveal delay={100} className="pf-contact">
         <div className="pf-contact__inner">
@@ -36,7 +44,7 @@ export default function Contact() {
               {copied ? "Copied ✓" : "Copy email"}
             </button>
             <a className="pf-btn pf-btn--ghost" href={PROFILE.resume} download>
-              Download résumé ↓
+              Download resume ↓
             </a>
           </div>
 
@@ -64,8 +72,9 @@ export default function Contact() {
       </Reveal>
 
       <footer className="pf-footer">
-        <span>© {new Date().getFullYear()} {PROFILE.name}</span>
-        
+        <span>
+          © {new Date().getFullYear()} {PROFILE.name}
+        </span>
       </footer>
     </section>
   );

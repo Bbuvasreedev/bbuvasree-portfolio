@@ -1,71 +1,79 @@
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
+import Reveal from "./Reveal";
+import SectionHead from "./SectionHead";
+import { PROJECTS, MINI_PROJECTS } from "../data/portfolioData";
 
-const AVATAR = encodeURI("/AI image logo.png");
-
-// Layers sit at different depths. The mouse tilts the whole stack,
-// so the photo looks like it floats in front of the rings.
-export default function Avatar3D() {
-  const wrapRef = useRef(null);
-  const stageRef = useRef(null);
-
-  // Slow automatic sway on touch screens (no mouse there)
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    if (!window.matchMedia("(pointer: coarse)").matches) return;
-
-    let raf;
-    const tick = (t) => {
-      stage.style.setProperty("--ry", `${Math.sin(t / 1400) * 14}deg`);
-      stage.style.setProperty("--rx", `${Math.cos(t / 1900) * 8}deg`);
-      raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, []);
+function ProjectCard({ p, index }) {
+  const ref = useRef(null);
 
   const onMove = (e) => {
-    const wrap = wrapRef.current;
-    const stage = stageRef.current;
-    if (!wrap || !stage) return;
-    const r = wrap.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width - 0.5;
-    const y = (e.clientY - r.top) / r.height - 0.5;
-    stage.style.setProperty("--ry", `${x * 26}deg`);
-    stage.style.setProperty("--rx", `${-y * 26}deg`);
+    const el = ref.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    el.style.setProperty("--mx", `${x}px`);
+    el.style.setProperty("--my", `${y}px`);
+    el.style.setProperty("--rx", `${((y / r.height) - 0.5) * -5}deg`);
+    el.style.setProperty("--ry", `${((x / r.width) - 0.5) * 5}deg`);
   };
-
   const onLeave = () => {
-    const stage = stageRef.current;
-    if (!stage) return;
-    stage.style.setProperty("--ry", "0deg");
-    stage.style.setProperty("--rx", "0deg");
+    const el = ref.current;
+    if (!el) return;
+    el.style.setProperty("--rx", "0deg");
+    el.style.setProperty("--ry", "0deg");
   };
 
   return (
-    <div
-      ref={wrapRef}
-      className="pf-a3d"
+    <article
+      ref={ref}
+      className={`pf-card ${p.featured ? "pf-card--featured" : ""}`}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
     >
-      <div ref={stageRef} className="pf-a3d__stage">
-        <span className="pf-a3d__shadow" />
-        <span className="pf-a3d__back" />
-        <span className="pf-a3d__ring pf-a3d__ring--outer" />
-        <span className="pf-a3d__ring pf-a3d__ring--inner" />
-        <span
-          className="pf-a3d__disc"
-          style={{ backgroundImage: `url("${AVATAR}")` }}
-          role="img"
-          aria-label="Bbuvasree N"
-        />
-        <span className="pf-a3d__chip pf-a3d__chip--1">RAG</span>
-        <span className="pf-a3d__chip pf-a3d__chip--2">pgvector</span>
-        <span className="pf-a3d__chip pf-a3d__chip--3">Spring AI</span>
-        <span className="pf-a3d__chip pf-a3d__chip--4">Ollama</span>
+      <span className="pf-card__num">{String(index + 1).padStart(2, "0")}</span>
+      <p className="pf-card__tag">{p.tag}</p>
+      <h3>{p.name}</h3>
+      <p className="pf-card__text">{p.text}</p>
+      <div className="pf-tags">
+        {p.stack.map((s) => (
+          <span key={s}>{s}</span>
+        ))}
       </div>
-    </div>
+    </article>
+  );
+}
+
+export default function Projects() {
+  return (
+    <section id="projects" className="pf-section">
+      <SectionHead
+        num="04"
+        label="Work"
+        title={
+          <>
+            Projects I&apos;m <em>proud</em> of.
+          </>
+        }
+        sub="Full-stack, mobile and GenAI builds, from idea to working product."
+      />
+
+      <div className="pf-grid">
+        {PROJECTS.map((p, i) => (
+          <Reveal key={p.name} delay={(i % 3) * 90}>
+            <ProjectCard p={p} index={i} />
+          </Reveal>
+        ))}
+      </div>
+
+      <Reveal delay={120} className="pf-mini">
+        <span className="pf-mini__label">Also built</span>
+        <div className="pf-tags">
+          {MINI_PROJECTS.map((m) => (
+            <span key={m}>{m}</span>
+          ))}
+        </div>
+      </Reveal>
+    </section>
   );
 }

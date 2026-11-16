@@ -1,7 +1,7 @@
 // ✏️ Edit your details here. Everything on the page reads from this file.
 export const PROFILE = {
   name: "Bbuvasree N",
-  role: "Java Full Stack Developer",
+  role: "Software Developer",
   email: "bbuvasree.n@gmail.com",
   phone: "7395963845",
   location: "Chennai, Tamil Nadu",
@@ -10,8 +10,13 @@ export const PROFILE = {
   resume: "/BbuvasreeN_Resume.pdf", // file inside /public
 };
 
+// Big paragraph at the top of the About section
 export const ABOUT_TEXT =
-  "Computer Science and Business Systems graduate who builds scalable full-stack applications and AI-powered solutions with Java, Spring Boot, React and Django, from REST APIs to RAG chatbots with LLMs, embeddings and vector search.";
+  "Computer Science and Business Systems graduate with hands-on experience across Java, Spring Boot, Python, Django, React, Flutter, SQL, REST APIs and modern GenAI technologies. I build end-to-end applications — from designing databases and developing backend services to creating responsive interfaces and integrating AI-powered solutions using LLMs, RAG, embeddings and vector search. I’m not limited to a single technology or development stack; I enjoy learning new tools, adapting to unfamiliar technologies and taking on different software-development challenges. Whether the role involves backend engineering, full-stack development, frontend development, API development or emerging AI technologies, I’m excited to learn quickly, contribute effectively and grow with the team.";
+
+// Smaller paragraph underneath
+export const ABOUT_EXTRA =
+  "What motivates me is the opportunity to turn ideas into useful, reliable products. I enjoy understanding how a system works end-to-end — designing the data layer, building APIs, developing intuitive interfaces, integrating intelligent features and continuously improving the solution. I’m curious by nature, comfortable learning new technologies, and always looking for better ways to solve problems. I’m open to diverse software-development opportunities where I can contribute, adapt quickly and grow into the challenges ahead.";
 
 export const STATS = [
   { n: 5, suffix: "", label: "Internships & trainings" },
@@ -29,15 +34,6 @@ export const SKILL_GROUPS = [
   { title: "Tools & Platforms", icon: "⌘", items: ["Git", "GitHub", "VS Code", "IntelliJ IDEA", "Eclipse", "Android Studio", "PyCharm", "Supabase"] },
 ];
 
-export const MARQUEE_A = [
-  "Java", "Spring Boot", "Spring AI", "React JS", "Django", "Flutter", "Python", "Dart",
-  "JavaScript", "REST APIs", "SQL",
-];
-export const MARQUEE_B = [
-  "RAG", "pgvector", "Ollama", "LLMs", "Embeddings", "PostgreSQL", "MySQL", "Supabase",
-  "Git", "GitHub", "Claude", "Copilot",
-];
-
 export const EXPERIENCE = [
   {
     role: "Software Engineer Intern",
@@ -49,7 +45,7 @@ export const EXPERIENCE = [
       "Develop REST APIs and integrate them with a SQL database for data storage and retrieval.",
       "Collaborate with cross-functional teams in an Agile environment: daily stand-ups and project reviews.",
     ],
-    tags: ["Java", "Spring Boot", "SQL", "REST", "Agile"],
+    tags: ["Java", "Spring Boot", "SQL", "REST", "Agile", "Dart", "Flutter", "PostgreSQL", "Supabase", "GenAI", "Docker"],
   },
   {
     role: "Java Full Stack Developer Intern",
@@ -80,7 +76,7 @@ export const EXPERIENCE = [
       "Built responsive webpage layouts with HTML and CSS, consistent across screen sizes.",
       "Designed reusable UI components to standardise page structure across multiple pages.",
     ],
-    tags: ["HTML", "CSS", "UI Components"],
+    tags: ["HTML", "CSS", "JavaScript", "UI Components"],
   },
   {
     role: "Java Development Trainee",
