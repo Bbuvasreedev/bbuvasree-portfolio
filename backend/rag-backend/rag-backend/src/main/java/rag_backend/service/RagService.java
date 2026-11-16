@@ -34,6 +34,41 @@ public class RagService {
         long start = System.currentTimeMillis();
 
         // =========================================================
+        // ABOUT QUESTION
+        // =========================================================
+
+        if (isAboutQuestion(question)) {
+
+            System.out.println("About question detected.");
+            System.out.println("Skipping embedding and LLM generation.");
+
+            String sql = """
+                    SELECT content
+                    FROM knowledge_documents
+                    WHERE source_file = 'about.md'
+                    ORDER BY id
+                    LIMIT 1
+                    """;
+
+            List<String> results = jdbcTemplate.query(
+                    sql,
+                    (rs, rowNum) -> rs.getString("content")
+            );
+
+            if (results.isEmpty()) {
+                return "That information is not available in Bbuvasree N's portfolio.";
+            }
+
+            System.out.println(
+                    "About retrieval time: " +
+                    (System.currentTimeMillis() - start) +
+                    " ms"
+            );
+
+            return formatAboutAnswer(results.get(0));
+        }
+
+        // =========================================================
         // SKILLS QUESTION
         // =========================================================
 
@@ -142,6 +177,10 @@ public class RagService {
             ));
         }
 
+        // =========================================================
+        // LLM PROMPT
+        // =========================================================
+
         String prompt = """
                 You are Bbuvasree N's portfolio assistant.
 
@@ -163,6 +202,23 @@ public class RagService {
                 - Preserve exact technology names.
                 - Keep the answer concise.
                 - Answer professionally.
+
+                - If the user asks for projects, return ONLY the project names
+                  as a simple list.
+                - Do not provide project descriptions.
+                - Do not introduce yourself.
+                - Do not add any information that is not explicitly present
+                  in the source.
+
+                - If the user asks about internships, return only the
+                  internship company names and internship roles.
+                - Do not provide long internship descriptions.
+
+                - If the user asks about education, return only the
+                  institution, degree or education level, and year when
+                  available in the source.
+                - Do not provide unnecessary descriptions.
+
                 - If the information is unavailable, say:
 
                 That information is not available in Bbuvasree N's portfolio.
@@ -199,6 +255,33 @@ public class RagService {
         return answer;
     }
 
+    // =============================================================
+    // ABOUT QUESTION DETECTION
+    // =============================================================
+
+    private boolean isAboutQuestion(String question) {
+
+        String q = question.toLowerCase().trim();
+
+        return q.equals("about")
+                || q.equals("about you")
+                || q.equals("about her")
+                || q.equals("about bbuvasree")
+                || q.equals("tell me about yourself")
+                || q.equals("tell me about her")
+                || q.equals("tell me about bbuvasree")
+                || q.equals("who is bbuvasree")
+                || q.equals("who is she")
+                || q.equals("who is bbuvasree n")
+                || q.contains("tell me about bbuvasree")
+                || q.contains("tell me about her")
+                || q.contains("about bbuvasree");
+    }
+
+    // =============================================================
+    // SKILLS QUESTION DETECTION
+    // =============================================================
+
     private boolean isSkillsQuestion(String question) {
 
         String q = question.toLowerCase();
@@ -220,6 +303,23 @@ public class RagService {
                 || q.contains("what tools");
     }
 
+    // =============================================================
+    // FORMAT ABOUT ANSWER
+    // =============================================================
+
+    private String formatAboutAnswer(String content) {
+
+        String cleaned = content
+                .replaceFirst("^#\\s+.*\\R?", "")
+                .trim();
+
+        return cleaned;
+    }
+
+    // =============================================================
+    // FORMAT SKILLS ANSWER
+    // =============================================================
+
     private String formatSkillsAnswer(String content) {
 
         String cleaned = content
@@ -232,6 +332,10 @@ public class RagService {
                 %s
                 """.formatted(cleaned);
     }
+
+    // =============================================================
+    // VECTOR CONVERSION
+    // =============================================================
 
     private String convertToPgVector(float[] embedding) {
 
@@ -250,6 +354,10 @@ public class RagService {
 
         return vector.toString();
     }
+
+    // =============================================================
+    // KNOWLEDGE RESULT
+    // =============================================================
 
     private record KnowledgeResult(
             String title,
