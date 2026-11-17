@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import "./AdminKnowledge.css";
 
-const API = "http://localhost:8080/api/admin/documents";
+const API = "https://bbuvasree-portfolio.onrender.com/api/admin/documents";
 
 export default function AdminKnowledge() {
 
