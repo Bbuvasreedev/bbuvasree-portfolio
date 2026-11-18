@@ -1,6 +1,6 @@
 package rag_backend.config;
 
-import org.springframework.ai.embedding.EmbeddingModel;
+import rag_backend.service.EmbeddingService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
@@ -14,18 +14,22 @@ import java.nio.charset.StandardCharsets;
 public class KnowledgeDataLoader implements CommandLineRunner {
 
     private final JdbcTemplate jdbcTemplate;
-    private final EmbeddingModel embeddingModel;
+    private final EmbeddingService embeddingService;
 
     public KnowledgeDataLoader(
             JdbcTemplate jdbcTemplate,
-            EmbeddingModel embeddingModel) {
+            EmbeddingService embeddingService) {
 
         this.jdbcTemplate = jdbcTemplate;
-        this.embeddingModel = embeddingModel;
+        this.embeddingService = embeddingService;
     }
 
     @Override
     public void run(String... args) throws Exception {
+
+        System.out.println(
+                "=== KNOWLEDGE DATA LOADER STARTED ==="
+        );
 
         PathMatchingResourcePatternResolver resolver =
                 new PathMatchingResourcePatternResolver();
@@ -97,6 +101,11 @@ public class KnowledgeDataLoader implements CommandLineRunner {
                 // File does not exist yet
             }
 
+            /*
+             * If the file has already been indexed
+             * and its content has not changed,
+             * do not create another embedding.
+             */
             if (content.equals(existingContent)) {
 
                 System.out.println(
@@ -107,8 +116,26 @@ public class KnowledgeDataLoader implements CommandLineRunner {
                 return;
             }
 
+            System.out.println(
+                    "Generating document embedding: "
+                            + sourceFile
+            );
+
+            /*
+             * IMPORTANT:
+             *
+             * Knowledge documents use
+             * RETRIEVAL_DOCUMENT.
+             */
             float[] embedding =
-                    embeddingModel.embed(content);
+                    embeddingService.generateDocumentEmbedding(
+                            content
+                    );
+
+            System.out.println(
+                    "Document embedding completed: "
+                            + sourceFile
+            );
 
             String vector =
                     convertToPgVector(embedding);

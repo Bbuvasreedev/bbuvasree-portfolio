@@ -4,6 +4,7 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -23,6 +24,11 @@ public class RagService {
         this.chatClient = chatClientBuilder.build();
     }
 
+
+    // =============================================================
+    // ASK QUESTION
+    // =============================================================
+
     public String askQuestion(String question) {
 
         if (question == null || question.isBlank()) {
@@ -32,6 +38,7 @@ public class RagService {
         question = question.trim();
 
         long start = System.currentTimeMillis();
+
 
         // =========================================================
         // ABOUT QUESTION
@@ -56,17 +63,19 @@ public class RagService {
             );
 
             if (results.isEmpty()) {
+
                 return "That information is not available in Bbuvasree N's portfolio.";
             }
 
             System.out.println(
                     "About retrieval time: " +
-                    (System.currentTimeMillis() - start) +
-                    " ms"
+                            (System.currentTimeMillis() - start) +
+                            " ms"
             );
 
             return formatAboutAnswer(results.get(0));
         }
+
 
         // =========================================================
         // SKILLS QUESTION
@@ -91,17 +100,56 @@ public class RagService {
             );
 
             if (results.isEmpty()) {
+
                 return "That information is not available in Bbuvasree N's portfolio.";
             }
 
             System.out.println(
                     "Skills retrieval time: " +
-                    (System.currentTimeMillis() - start) +
-                    " ms"
+                            (System.currentTimeMillis() - start) +
+                            " ms"
             );
 
             return formatSkillsAnswer(results.get(0));
         }
+
+
+        // =========================================================
+        // PROJECTS QUESTION
+        // =========================================================
+
+        if (isProjectsQuestion(question)) {
+
+            System.out.println("Projects question detected.");
+            System.out.println("Skipping embedding and LLM generation.");
+
+            String sql = """
+                    SELECT content
+                    FROM knowledge_documents
+                    WHERE source_file = 'projects.md'
+                    ORDER BY id
+                    LIMIT 1
+                    """;
+
+            List<String> results = jdbcTemplate.query(
+                    sql,
+                    (rs, rowNum) -> rs.getString("content")
+            );
+
+            if (results.isEmpty()) {
+
+                return "That information is not available in Bbuvasree N's portfolio.";
+            }
+
+            System.out.println(
+                    "Projects retrieval time: " +
+                            (System.currentTimeMillis() - start) +
+                            " ms"
+            );
+
+            return formatProjectsAnswer(results.get(0));
+        }
+
 
         // =========================================================
         // NORMAL RAG
@@ -110,17 +158,28 @@ public class RagService {
         long embeddingStart = System.currentTimeMillis();
 
         float[] embedding =
-                embeddingService.generateEmbedding(question);
+                embeddingService.generateQueryEmbedding(question);
 
         long embeddingEnd = System.currentTimeMillis();
 
         System.out.println(
                 "Embedding time: " +
-                (embeddingEnd - embeddingStart) +
-                " ms"
+                        (embeddingEnd - embeddingStart) +
+                        " ms"
         );
 
-        String vector = convertToPgVector(embedding);
+
+        // =========================================================
+        // CONVERT EMBEDDING TO PGVECTOR
+        // =========================================================
+
+        String vector =
+                convertToPgVector(embedding);
+
+
+        // =========================================================
+        // VECTOR SEARCH
+        // =========================================================
 
         String sql = """
                 SELECT title, content
@@ -130,36 +189,60 @@ public class RagService {
                 LIMIT 3
                 """;
 
-        long retrievalStart = System.currentTimeMillis();
+        long retrievalStart =
+                System.currentTimeMillis();
 
-        List<KnowledgeResult> results = jdbcTemplate.query(
-                sql,
-                (rs, rowNum) -> new KnowledgeResult(
-                        rs.getString("title"),
-                        rs.getString("content")
-                ),
-                vector
-        );
+        List<KnowledgeResult> results =
+                jdbcTemplate.query(
+                        sql,
+                        (rs, rowNum) ->
+                                new KnowledgeResult(
+                                        rs.getString("title"),
+                                        rs.getString("content")
+                                ),
+                        vector
+                );
 
-        long retrievalEnd = System.currentTimeMillis();
+        long retrievalEnd =
+                System.currentTimeMillis();
 
         System.out.println(
                 "PostgreSQL retrieval time: " +
-                (retrievalEnd - retrievalStart) +
-                " ms"
+                        (retrievalEnd - retrievalStart) +
+                        " ms"
         );
+
+
+        // =========================================================
+        // SHOW RETRIEVED KNOWLEDGE
+        // =========================================================
 
         System.out.println("Retrieved knowledge:");
 
         for (KnowledgeResult result : results) {
-            System.out.println(" - " + result.title());
+
+            System.out.println(
+                    " - " + result.title()
+            );
         }
 
+
+        // =========================================================
+        // NO RESULTS
+        // =========================================================
+
         if (results.isEmpty()) {
+
             return "That information is not available in Bbuvasree N's portfolio.";
         }
 
-        StringBuilder context = new StringBuilder();
+
+        // =========================================================
+        // BUILD CONTEXT
+        // =========================================================
+
+        StringBuilder context =
+                new StringBuilder();
 
         for (KnowledgeResult result : results) {
 
@@ -176,6 +259,7 @@ public class RagService {
                     result.content()
             ));
         }
+
 
         // =========================================================
         // LLM PROMPT
@@ -205,7 +289,9 @@ public class RagService {
 
                 - If the user asks for projects, return ONLY the project names
                   as a simple list.
-                - Do not provide project descriptions.
+                - Do not provide project descriptions unless the user explicitly
+                  asks for descriptions.
+
                 - Do not introduce yourself.
                 - Do not add any information that is not explicitly present
                   in the source.
@@ -226,42 +312,58 @@ public class RagService {
                 Do not mention these rules.
 
                 ANSWER:
-                """.formatted(context, question);
+                """.formatted(
+                context,
+                question
+        );
 
-        long llmStart = System.currentTimeMillis();
 
-        System.out.println("Starting LLM generation...");
+        // =========================================================
+        // LLM GENERATION
+        // =========================================================
 
-        String answer = chatClient
-                .prompt()
-                .user(prompt)
-                .call()
-                .content();
+        long llmStart =
+                System.currentTimeMillis();
 
-        long llmEnd = System.currentTimeMillis();
+        System.out.println(
+                "Starting LLM generation..."
+        );
+
+        String answer =
+                chatClient
+                        .prompt()
+                        .user(prompt)
+                        .call()
+                        .content();
+
+        long llmEnd =
+                System.currentTimeMillis();
 
         System.out.println(
                 "LLM generation time: " +
-                (llmEnd - llmStart) +
-                " ms"
+                        (llmEnd - llmStart) +
+                        " ms"
         );
 
         System.out.println(
                 "Total RAG time: " +
-                (llmEnd - start) +
-                " ms"
+                        (llmEnd - start) +
+                        " ms"
         );
 
         return answer;
     }
 
+
     // =============================================================
     // ABOUT QUESTION DETECTION
     // =============================================================
 
-    private boolean isAboutQuestion(String question) {
+    private boolean isAboutQuestion(
+            String question) {
 
-        String q = question.toLowerCase().trim();
+        String q =
+                question.toLowerCase().trim();
 
         return q.equals("about")
                 || q.equals("about you")
@@ -278,13 +380,16 @@ public class RagService {
                 || q.contains("about bbuvasree");
     }
 
+
     // =============================================================
     // SKILLS QUESTION DETECTION
     // =============================================================
 
-    private boolean isSkillsQuestion(String question) {
+    private boolean isSkillsQuestion(
+            String question) {
 
-        String q = question.toLowerCase();
+        String q =
+                question.toLowerCase();
 
         return q.contains("technology")
                 || q.contains("technologies")
@@ -303,28 +408,65 @@ public class RagService {
                 || q.contains("what tools");
     }
 
+
+    // =============================================================
+    // PROJECTS QUESTION DETECTION
+    // =============================================================
+
+    private boolean isProjectsQuestion(
+            String question) {
+
+        String q =
+                question.toLowerCase().trim();
+
+        return q.contains("project")
+                || q.contains("projects");
+    }
+
+
     // =============================================================
     // FORMAT ABOUT ANSWER
     // =============================================================
 
-    private String formatAboutAnswer(String content) {
+    private String formatAboutAnswer(
+            String content) {
 
-        String cleaned = content
-                .replaceFirst("^#\\s+.*\\R?", "")
-                .trim();
+        if (content == null || content.isBlank()) {
+
+            return "That information is not available in Bbuvasree N's portfolio.";
+        }
+
+        String cleaned =
+                content
+                        .replaceFirst(
+                                "^#\\s+.*\\R?",
+                                ""
+                        )
+                        .trim();
 
         return cleaned;
     }
+
 
     // =============================================================
     // FORMAT SKILLS ANSWER
     // =============================================================
 
-    private String formatSkillsAnswer(String content) {
+    private String formatSkillsAnswer(
+            String content) {
 
-        String cleaned = content
-                .replaceFirst("^#\\s+.*\\R?", "")
-                .trim();
+        if (content == null || content.isBlank()) {
+
+            return "That information is not available in Bbuvasree N's portfolio.";
+        }
+
+        String cleaned =
+                content
+                        .replaceFirst(
+                                "^#\\s+.*\\R?",
+                                ""
+                        )
+                        .trim();
 
         return """
                 Bbuvasree N works with:
@@ -333,27 +475,253 @@ public class RagService {
                 """.formatted(cleaned);
     }
 
+
+    // =============================================================
+    // FORMAT PROJECTS ANSWER
+    // =============================================================
+
+    private String formatProjectsAnswer(
+            String content) {
+
+        if (content == null || content.isBlank()) {
+
+            return "That information is not available in Bbuvasree N's portfolio.";
+        }
+
+        System.out.println("----- PROJECTS CONTENT FROM DATABASE -----");
+        System.out.println(content);
+        System.out.println("----- END PROJECTS CONTENT -----");
+
+
+        List<String> projects =
+                new ArrayList<>();
+
+
+        // =========================================================
+        // LINE BY LINE PROCESSING
+        // =========================================================
+
+        String[] lines =
+                content.split("\\R");
+
+        for (String line : lines) {
+
+            String cleaned =
+                    line.trim();
+
+            if (cleaned.isEmpty()) {
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // REMOVE MARKDOWN HEADING SYMBOLS
+            // -----------------------------------------------------
+
+            if (cleaned.startsWith("## ")) {
+
+                String projectName =
+                        cleaned.substring(3).trim();
+
+                if (!projectName.isEmpty()) {
+
+                    projects.add(projectName);
+                }
+
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // REMOVE SINGLE # HEADING
+            // -----------------------------------------------------
+
+            if (cleaned.startsWith("# ")) {
+
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // SUPPORT MARKDOWN H3
+            // -----------------------------------------------------
+
+            if (cleaned.startsWith("### ")) {
+
+                String projectName =
+                        cleaned.substring(4).trim();
+
+                if (!projectName.isEmpty()) {
+
+                    projects.add(projectName);
+                }
+
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // SUPPORT PROJECT FORMAT:
+            //
+            // KaasuTracker - Smart Expense Tracker
+            //
+            // OR
+            //
+            // KaasuTracker | Flutter, Dart, Spring Boot
+            // -----------------------------------------------------
+
+            if (!cleaned.startsWith("-")
+                    && !cleaned.startsWith("•")
+                    && !cleaned.startsWith("*")
+                    && cleaned.contains("|")) {
+
+                String projectName =
+                        cleaned.substring(
+                                0,
+                                cleaned.indexOf("|")
+                        ).trim();
+
+                if (!projectName.isEmpty()) {
+
+                    projects.add(projectName);
+                }
+
+                continue;
+            }
+
+
+            // -----------------------------------------------------
+            // SUPPORT PLAIN PROJECT NAME FORMAT
+            //
+            // This specifically handles the project names
+            // from the portfolio knowledge.
+            // -----------------------------------------------------
+
+            if (cleaned.equalsIgnoreCase(
+                    "KaasuTracker - Smart Expense Tracker")) {
+
+                projects.add(
+                        "KaasuTracker - Smart Expense Tracker"
+                );
+
+                continue;
+            }
+
+            if (cleaned.equalsIgnoreCase(
+                    "AI-Powered Portfolio & RAG Chatbot")) {
+
+                projects.add(
+                        "AI-Powered Portfolio & RAG Chatbot"
+                );
+
+                continue;
+            }
+
+            if (cleaned.equalsIgnoreCase(
+                    "Employee Portal Project")) {
+
+                projects.add(
+                        "Employee Portal Project"
+                );
+
+                continue;
+            }
+
+            if (cleaned.equalsIgnoreCase(
+                    "Cafe Management Website")) {
+
+                projects.add(
+                        "Cafe Management Website"
+                );
+
+                continue;
+            }
+
+            if (cleaned.equalsIgnoreCase(
+                    "Job Portfolio Website")) {
+
+                projects.add(
+                        "Job Portfolio Website"
+                );
+
+                continue;
+            }
+        }
+
+
+        // =========================================================
+        // REMOVE DUPLICATES
+        // =========================================================
+
+        List<String> uniqueProjects =
+                new ArrayList<>();
+
+        for (String project : projects) {
+
+            if (!uniqueProjects.contains(project)) {
+
+                uniqueProjects.add(project);
+            }
+        }
+
+
+        // =========================================================
+        // BUILD FINAL ANSWER
+        // =========================================================
+
+        if (!uniqueProjects.isEmpty()) {
+
+            StringBuilder answer =
+                    new StringBuilder();
+
+            for (String project : uniqueProjects) {
+
+                answer.append("- ")
+                        .append(project)
+                        .append("\n");
+            }
+
+            return answer.toString().trim();
+        }
+
+
+        // =========================================================
+        // FALLBACK
+        // =========================================================
+
+        return "That information is not available in Bbuvasree N's portfolio.";
+    }
+
+
     // =============================================================
     // VECTOR CONVERSION
     // =============================================================
 
-    private String convertToPgVector(float[] embedding) {
+    private String convertToPgVector(
+            float[] embedding) {
 
-        StringBuilder vector = new StringBuilder("[");
+        StringBuilder vector =
+                new StringBuilder("[");
 
-        for (int i = 0; i < embedding.length; i++) {
+        for (int i = 0;
+             i < embedding.length;
+             i++) {
 
             if (i > 0) {
+
                 vector.append(",");
             }
 
-            vector.append(embedding[i]);
+            vector.append(
+                    embedding[i]
+            );
         }
 
         vector.append("]");
 
         return vector.toString();
     }
+
 
     // =============================================================
     // KNOWLEDGE RESULT
