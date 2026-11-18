@@ -1,7 +1,3 @@
-# ==============================
-# Build stage
-# ==============================
-
 FROM eclipse-temurin:21-jdk-alpine AS build
 
 WORKDIR /app
@@ -11,11 +7,6 @@ COPY . .
 RUN chmod +x ./mvnw
 
 RUN ./mvnw clean package -DskipTests
-
-
-# ==============================
-# Run stage
-# ==============================
 
 FROM eclipse-temurin:21-jre-alpine
 

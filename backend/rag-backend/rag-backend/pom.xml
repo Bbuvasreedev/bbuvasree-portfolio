@@ -52,12 +52,13 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Spring AI - OpenAI Compatible -->
+        <!-- Spring AI - OpenAI Compatible Chat -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-openai</artifactId>
         </dependency>
 
+        <!-- Google GenAI Embeddings -->
         <dependency>
             <groupId>org.springframework.ai</groupId>
             <artifactId>spring-ai-starter-model-google-genai-embedding</artifactId>
