@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/documents")
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = {"https://vermillion-malasada-bb6c41.netlify.app", "http://localhost:5173", "http://localhost:3000"})
 public class AdminDocumentController {
 
     private final DocumentIngestionService ingestionService;
