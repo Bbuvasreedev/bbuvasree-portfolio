@@ -2,14 +2,13 @@ package rag_backend.config;
 
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.stream.Stream;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class KnowledgeDataLoader implements CommandLineRunner {
@@ -20,6 +19,7 @@ public class KnowledgeDataLoader implements CommandLineRunner {
     public KnowledgeDataLoader(
             JdbcTemplate jdbcTemplate,
             EmbeddingModel embeddingModel) {
+
         this.jdbcTemplate = jdbcTemplate;
         this.embeddingModel = embeddingModel;
     }
@@ -27,76 +27,94 @@ public class KnowledgeDataLoader implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
 
-        Path knowledgeFolder = Paths.get(
-        "src/main/resources/knowledge"
-);
+        PathMatchingResourcePatternResolver resolver =
+                new PathMatchingResourcePatternResolver();
 
-        if (!Files.exists(knowledgeFolder)) {
+        Resource[] resources =
+                resolver.getResources(
+                        "classpath:knowledge/*.md"
+                );
+
+        if (resources.length == 0) {
+
             System.out.println(
-                    "Knowledge folder not found: " + knowledgeFolder
+                    "No knowledge files found in classpath:knowledge"
             );
+
             return;
         }
 
-        try (Stream<Path> files = Files.list(knowledgeFolder)) {
+        System.out.println(
+                "Found " + resources.length +
+                        " knowledge files."
+        );
 
-            files.filter(path -> path.toString().endsWith(".md"))
-                    .forEach(this::processFile);
+        for (Resource resource : resources) {
+
+            processFile(resource);
         }
     }
 
-    private void processFile(Path file) {
+    private void processFile(Resource resource) {
 
         try {
 
-            String content = Files.readString(file);
+            String content =
+                    new String(
+                            resource.getInputStream().readAllBytes(),
+                            StandardCharsets.UTF_8
+                    );
 
-            if (content == null || content.isBlank()) {
+            if (content.isBlank()) {
                 return;
             }
 
-            String sourceFile = file.getFileName().toString();
+            String sourceFile =
+                    resource.getFilename();
 
-            // Check whether this file already exists
+            if (sourceFile == null) {
+                return;
+            }
+
             String existingContent = null;
 
             try {
 
-                existingContent = jdbcTemplate.queryForObject(
-                        """
-                        SELECT content
-                        FROM knowledge_documents
-                        WHERE source_file = ?
-                        ORDER BY id DESC
-                        LIMIT 1
-                        """,
-                        String.class,
-                        sourceFile
-                );
+                existingContent =
+                        jdbcTemplate.queryForObject(
+                                """
+                                SELECT content
+                                FROM knowledge_documents
+                                WHERE source_file = ?
+                                ORDER BY id DESC
+                                LIMIT 1
+                                """,
+                                String.class,
+                                sourceFile
+                        );
 
             } catch (Exception ignored) {
                 // File does not exist yet
             }
 
-            // If the file has not changed, don't generate
-            // another embedding.
             if (content.equals(existingContent)) {
 
                 System.out.println(
-                        "Knowledge file already loaded: " + sourceFile
+                        "Knowledge file already loaded: "
+                                + sourceFile
                 );
 
                 return;
             }
 
-            // Generate embedding only for new/changed content
-            float[] embedding = embeddingModel.embed(content);
+            float[] embedding =
+                    embeddingModel.embed(content);
 
-            String vector = convertToPgVector(embedding);
+            String vector =
+                    convertToPgVector(embedding);
 
             if (existingContent == null) {
 
-                // New knowledge file
                 String insertSql = """
                         INSERT INTO knowledge_documents
                         (title, content, source_file, embedding)
@@ -112,12 +130,12 @@ public class KnowledgeDataLoader implements CommandLineRunner {
                 );
 
                 System.out.println(
-                        "Loaded new knowledge file: " + sourceFile
+                        "Loaded new knowledge file: "
+                                + sourceFile
                 );
 
             } else {
 
-                // Existing file changed
                 String updateSql = """
                         UPDATE knowledge_documents
                         SET title = ?,
@@ -141,14 +159,16 @@ public class KnowledgeDataLoader implements CommandLineRunner {
                 );
 
                 System.out.println(
-                        "Updated knowledge file: " + sourceFile
+                        "Updated knowledge file: "
+                                + sourceFile
                 );
             }
 
         } catch (IOException e) {
 
             throw new RuntimeException(
-                    "Failed to read knowledge file: " + file,
+                    "Failed to read knowledge file: "
+                            + resource,
                     e
             );
         }
@@ -159,18 +179,25 @@ public class KnowledgeDataLoader implements CommandLineRunner {
         for (String line : content.split("\\R")) {
 
             if (line.startsWith("# ")) {
-                return line.substring(2).trim();
+
+                return line
+                        .substring(2)
+                        .trim();
             }
         }
 
         return "Portfolio Knowledge";
     }
 
-    private String convertToPgVector(float[] embedding) {
+    private String convertToPgVector(
+            float[] embedding) {
 
-        StringBuilder vector = new StringBuilder("[");
+        StringBuilder vector =
+                new StringBuilder("[");
 
-        for (int i = 0; i < embedding.length; i++) {
+        for (int i = 0;
+             i < embedding.length;
+             i++) {
 
             if (i > 0) {
                 vector.append(",");
