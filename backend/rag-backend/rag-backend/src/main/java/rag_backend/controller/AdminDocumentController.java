@@ -11,14 +11,19 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/admin/documents")
-@CrossOrigin(origins = {"https://vermillion-malasada-bb6c41.netlify.app", "http://localhost:5173", "http://localhost:3000"})
+@CrossOrigin(
+        origins = {
+                "https://vermillion-malasada-bb6c41.netlify.app",
+                "http://localhost:5173",
+                "http://localhost:3000"
+        }
+)
 public class AdminDocumentController {
 
     private final DocumentIngestionService ingestionService;
 
     public AdminDocumentController(
             DocumentIngestionService ingestionService) {
-
         this.ingestionService = ingestionService;
     }
 
@@ -27,9 +32,7 @@ public class AdminDocumentController {
             @RequestParam("file") MultipartFile file) {
 
         try {
-
-            String result =
-                    ingestionService.ingest(file);
+            String result = ingestionService.ingest(file);
 
             return ResponseEntity.ok(
                     Map.of(
@@ -44,17 +47,14 @@ public class AdminDocumentController {
                     .body(
                             Map.of(
                                     "success", false,
-                                    "message",
-                                    e.getMessage()
+                                    "message", e.getMessage()
                             )
                     );
         }
     }
 
     @GetMapping
-    public ResponseEntity<List<DocumentInfo>>
-    listDocuments() {
-
+    public ResponseEntity<List<DocumentInfo>> listDocuments() {
         return ResponseEntity.ok(
                 ingestionService.listDocuments()
         );
